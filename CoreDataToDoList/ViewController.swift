@@ -40,6 +40,27 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         return cell
     }
     
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let task = tasks[indexPath.row]
+        
+        let ac = UIAlertController(title: "Manage Task", message: "", preferredStyle: .alert)
+        ac.addAction(UIAlertAction(title: "Update", style: .default, handler: {[weak self] _ in
+            let ac = UIAlertController(title: "Updating Task", message: "Enter task details.", preferredStyle: .alert)
+            ac.addTextField()
+            ac.textFields?.first?.text = task.task
+            ac.addAction(UIAlertAction(title: "Update", style: .default, handler: {[weak self] _ in
+                guard let field = ac.textFields?.first, let text = field.text, !text.isEmpty else {return}
+                self?.updateTask(task: task, newTask: text)
+            }))
+            self?.present(ac, animated: true)
+        }))
+        ac.addAction(UIAlertAction(title: "Delete", style: .cancel, handler: {
+            [weak self] _ in
+            self?.deleteTask(task: task)
+        }))
+        present(ac, animated: true)
+    }
+    
     func getTasks() {
         do {
             tasks = try context.fetch(ToDoListItem.fetchRequest())
@@ -69,6 +90,9 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         context.delete(task)
         do {
             try context.save()
+            DispatchQueue.main.async {
+                self.tableView.reloadData()
+            }
         }
         catch {
             
@@ -80,6 +104,9 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         
         do {
             try context.save()
+            DispatchQueue.main.async {
+                self.tableView.reloadData()
+            }
         }
         catch {
             
